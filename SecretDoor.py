@@ -11,6 +11,16 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
+try:
+    from _config import token
+    bot = Bot(token = token, parse_mode='MarkdownV2')
+except ModuleNotFoundError:
+    token = input("_config.py is absent, enter your token here: ")
+    try:
+        bot = Bot(token = token, parse_mode='MarkdownV2')
+    except Exception as e:
+        print(f"Invalid token! Error: {e}")
+
 class google_search(StatesGroup):
   key_Word = State()
 
@@ -20,10 +30,9 @@ btn2 = InlineKeyboardButton(text = '🔎 Начать поиск', callback_data
 bots.add(btn1)
 bots.add(btn2)
 
-bot = Bot(token = 'кто' , parse_mode='MarkdownV2')
 dp = Dispatcher(bot = bot, storage = MemoryStorage())
 
-def extract_results(link):
+def extract_results(link: str) -> list:
     response = requests.get(link).text
     result_divs = BeautifulSoup(response, 'lxml').find_all('div', class_='g')
     links = []
@@ -63,8 +72,14 @@ async def id(m: types.Message, state: FSMContext):
     #                    google\.com/search\?q\=site:t\.me/joinchat\+{text}\n
     #                    yandex\.uz/search/\?text\=site\%3At\.me%2Fjoinchat\+{text}""", reply_markup=bots)
     await m.answer("Запускаю поиск..")
-    ## Implement extract results
+    ##TODO Implement extraction of the results
+    result_list = []
+    for i in range(100): # arbitrary range - might changes
+        google_link = f"google.com/search?q=site:t.me/joinchat+{text}&start={i}"
+        result_list.append(extract_results(google_link))
+    await m.answer(f"result_list: {result_list[:20]}")
     await state.finish()
 
-if __name__ == 'main':
-  executor.start_polling(dp)
+if __name__ == '__main__':
+    print("Starting...")
+    executor.start_polling(dp)
