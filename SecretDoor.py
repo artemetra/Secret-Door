@@ -1,4 +1,8 @@
 import requests
+import re
+from bs4 import BeautifulSoup
+
+# aiogram stuff
 from aiogram import types, Dispatcher, Bot
 from aiogram.dispatcher import Dispatcher, FSMContext 
 from aiogram.utils import executor
@@ -8,7 +12,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 class google_search(StatesGroup):
-	key_Word = State();
+  key_Word = State()
 
 bots = InlineKeyboardMarkup()
 btn1 = InlineKeyboardButton(text = '❔ Помощь', callback_data='help')
@@ -16,18 +20,26 @@ btn2 = InlineKeyboardButton(text = '🔎 Начать поиск', callback_data
 bots.add(btn1)
 bots.add(btn2)
 
-bot = Bot(token = 'YOU-TOKEN' , parse_mode='MarkdownV2')
-dp = Dispatcher(bot = bot, storage = MemoryStorage());
+bot = Bot(token = 'кто' , parse_mode='MarkdownV2')
+dp = Dispatcher(bot = bot, storage = MemoryStorage())
+
+def extract_results(link):
+    response = requests.get(link).text
+    result_divs = BeautifulSoup(response, 'lxml').find_all('div', class_='g')
+    links = []
+    for div in result_divs:
+        links.append(re.search(r'(?:href\=")(.+?)(?:")', BeautifulSoup(div, 'lxml').find('a')).group(1))
+    return links
 
 @dp.message_handler(text='/start')
 async def start(m: types.Message):
-	await m.answer('Привет Странник, я найду для тебя приватные группы и каналы\n'
+  await m.answer('Привет Странник, я найду для тебя приватные группы и каналы\n'
 'Ты можешь использовать клавиатуру',
 reply_markup = bots)
 
 @dp.callback_query_handler(text="help")
 async def help(call: types.CallbackQuery):
-    await call.message.answer('🤖 Бот помогает с поиском **частных** телеграм каналов по знаменитым ресурсам облегчая вам работу\n\n'
+    await call.message.answer('🤖 Бот помогает с поиском частных телеграм каналов по знаменитым ресурсам облегчая вам работу\n\n'
 '**Мелкая справка:**\n'
 'Если вам нужно найти канал с названием больше одного слова, вместо пробела ставьте "\+"\.', reply_markup=bots)
 
@@ -40,19 +52,19 @@ async def search(call: types.CallbackQuery):
 
 @dp.message_handler(state = google_search.key_Word)
 async def id(m: types.Message, state: FSMContext):
-	text = m.text;
-	request = m.result;
-	await state.update_data(text1 = text);
+  text = m.text
+  await state.update_data(text1 = text)
 
-	if text == '/cancel':
-		await m.answer('Отмененно', reply_markup=bots)
-		await state.finish()
-	else:
-		await m.answer(f'Все что удалось найти\.\.\.\n'
-f'google\.com/search\?q\=site:\+t\.me/joinchat\+{text}\n'
-f'yandex\.uz/search/\?text\=site\%3A\+t\.me%2Fjoinchat\+{text}', reply_markup=bots)
-		
-		await state.finish()
+  if text == '/cancel':
+    await m.answer('Отмененно', reply_markup=bots)
+    await state.finish()
+  else:
+    # await m.answer(f"""Все что удалось найти\.\.\.\n
+    #                    google\.com/search\?q\=site:t\.me/joinchat\+{text}\n
+    #                    yandex\.uz/search/\?text\=site\%3At\.me%2Fjoinchat\+{text}""", reply_markup=bots)
+    await m.answer("Запускаю поиск..")
+    ## Implement extract results
+    await state.finish()
 
-if __name__ == '__main__':
-	executor.start_polling(dp)
+if __name__ == 'main':
+  executor.start_polling(dp)
