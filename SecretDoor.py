@@ -1,6 +1,8 @@
+from lxml.html import fromstring
 import requests
 import re
 from bs4 import BeautifulSoup
+from googlesearch import search as go_search
 
 # aiogram stuff
 from aiogram import types, Dispatcher, Bot
@@ -30,7 +32,21 @@ btn2 = InlineKeyboardButton(text = '🔎 Начать поиск', callback_data
 bots.add(btn1)
 bots.add(btn2)
 
+headers = {"User-Agent":"Opera/9.80 (J2ME/MIDP; Opera Mini/9.80 (S60; SymbOS; Opera Mobi/23.334; U; id) Presto/2.5.25 Version/10.54"}
+
 dp = Dispatcher(bot = bot, storage = MemoryStorage())
+
+def search_dork(query: str) -> list:
+    urls = go_search(f"t.me/joinchat {query}", num_results=50)
+    for url in urls:
+        try:
+            req = requests.get(url, headers=headers)
+            res = fromstring(req.content)
+            string = res.findtext(".//title")
+            return string
+        except Exception as e:
+            print(f"Exception occured! details: {e}")
+    
 
 def extract_results(link: str) -> list:
     response = requests.get(link).text
@@ -42,6 +58,7 @@ def extract_results(link: str) -> list:
 
 @dp.message_handler(text='/start')
 async def start(m: types.Message):
+  print("BRBURBRBBRBUR")
   await m.answer('Привет Странник, я найду для тебя приватные группы и каналы\n'
 'Ты можешь использовать клавиатуру',
 reply_markup = bots)
@@ -73,11 +90,15 @@ async def id(m: types.Message, state: FSMContext):
     #                    yandex\.uz/search/\?text\=site\%3At\.me%2Fjoinchat\+{text}""", reply_markup=bots)
     await m.answer("Запускаю поиск..")
     ##TODO Implement extraction of the results
-    result_list = []
-    for i in range(100): # arbitrary range - might changes
-        google_link = f"google.com/search?q=site:t.me/joinchat+{text}&start={i}"
-        result_list.append(extract_results(google_link))
-    await m.answer(f"result_list: {result_list[:20]}")
+    # result_list = []
+    # for i in range(100): # arbitrary range - might changes
+    #     google_link = f"google.com/search?q=site:t.me/joinchat+{text}&start={i}"
+    #     result_list.append(extract_results(google_link))
+    # await m.answer(f"result_list: {result_list[:20]}")
+    result = search_dork(text)
+    print(result)
+
+
     await state.finish()
 
 if __name__ == '__main__':
