@@ -68,22 +68,23 @@ def extract_results(link: str) -> list:
 @dp.message_handler(text='/start')
 async def start(m: types.Message):
   im_at()
-  await m.answer('Привет Странник, я найду для тебя приватные группы и каналы\n'
-'Ты можешь использовать клавиатуру',
-reply_markup = bots)
+  await m.answer(r"""Привет Странник, я найду для тебя приватные группы и каналы
+                'Ты можешь использовать клавиатуру""",
+                reply_markup = bots)
 
 @dp.callback_query_handler(text="help")
 async def help(call: types.CallbackQuery):
     im_at()
-    await call.message.answer('🤖 Бот помогает с поиском частных телеграм каналов по знаменитым ресурсам облегчая вам работу\n\n'
-'**Мелкая справка:**\n'
-'Если вам нужно найти канал с названием больше одного слова, вместо пробела ставьте "\+"\.', reply_markup=bots)
+    await call.message.answer(r"""🤖 Бот помогает с поиском частных телеграм каналов по знаменитым ресурсам облегчая вам работу
+    
+                            **Мелкая справка:**
+                            Если вам нужно найти канал с названием больше одного слова, вместо пробела ставьте "+".""", reply_markup=bots)
 
 
 @dp.callback_query_handler(text="search")
 async def search(call: types.CallbackQuery):
     im_at()
-    await call.message.answer('Окей, введи интересующую тебя тему и я постараюсь найти для тебя приватные каналы/группы\.\n'
+    await call.message.answer(r'Окей, введи интересующую тебя тему и я постараюсь найти для тебя приватные каналы/группы\.\n'
     'Для отмены \> /cancel', reply_markup=bots)
     await google_search.key_Word.set()
 
@@ -95,13 +96,13 @@ async def id(m: types.Message, state: FSMContext):
 
   if text == '/cancel':
     im_at()
-    await m.answer('Отмененно', reply_markup=bots)
+    await m.answer(r'Отменено', reply_markup=bots)
     await state.finish()
   else:
     # await m.answer(f"""Все что удалось найти\.\.\.\n
     #                    google\.com/search\?q\=site:t\.me/joinchat\+{text}\n
     #                    yandex\.uz/search/\?text\=site\%3At\.me%2Fjoinchat\+{text}""", reply_markup=bots)
-    await m.answer("Запускаю поиск..")
+    await m.answer(r"Запускаю поиск..")
     im_at()
     ##TODO Implement extraction of the results
     # result_list = []
