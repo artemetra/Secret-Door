@@ -13,6 +13,7 @@ from aiogram.utils.helper import Helper, ListItem
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.utils.exceptions import BotBlocked
 
 try:
     from _config import token
@@ -68,9 +69,13 @@ def extract_results(link: str) -> list:
 @dp.message_handler(text='/start')
 async def start(m: types.Message):
   im_at()
-  await m.answer(r"""Привет Странник, я найду для тебя приватные группы и каналы
-                'Ты можешь использовать клавиатуру""",
-                reply_markup = bots)
+  try:
+    await m.answer(r"""Привет Странник, я найду для тебя приватные группы и каналы
+                    'Ты можешь использовать клавиатуру""",
+                    reply_markup = bots)
+  except BotBlocked:
+      pass
+
 
 @dp.callback_query_handler(text="help")
 async def help(call: types.CallbackQuery):
